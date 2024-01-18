@@ -49,7 +49,7 @@ export async function updateRecord(token: string, zoneId: string, recordId: stri
     name,
     content,
     ttl,
-    proxied
+    proxied: proxied === 'true' ? true : false
   }
 
   core.info(JSON.stringify(body));
@@ -90,7 +90,7 @@ export async function createRecord(token: string, zoneId: string, name: string, 
     name,
     content,
     ttl,
-    proxied
+    proxied: proxied === 'true' ? true : false
   }
 
   core.info(JSON.stringify(body));
