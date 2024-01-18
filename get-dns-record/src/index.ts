@@ -9,10 +9,12 @@ async function run() {
     const token: string = core.getInput('token');
 
     const currentRecord = await getCurrentRecord(token, zoneId, name);
-    if (currentRecord) {
-      core.setOutput('record-id', currentRecord.id);
-      core.setOutput('content', currentRecord.content);
+    if (!currentRecord) {
+      throw new Error(`Record does not exist`);
     }
+
+    core.setOutput('record-id', currentRecord.id);
+    core.setOutput('content', currentRecord.content);
   } catch (error) {
     core.setFailed(error.message);
   }

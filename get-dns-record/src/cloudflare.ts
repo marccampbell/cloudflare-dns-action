@@ -15,13 +15,11 @@ export async function getCurrentRecord(token: string, zoneId: string, name: stri
     "Accept": "application/json"
   };
 
-  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?name`;
+  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?per_page=50000`;
 
   const response = await http.get(url, headers);
   const body = await response.readBody();
   const json = JSON.parse(body);
-
-  core.info(body);
 
   if (json.success) {
     const record = json.result.find((record: any) => record.name === name);
