@@ -15,7 +15,7 @@ export async function getCurrentRecord(token: string, zoneId: string, name: stri
     "Accept": "application/json"
   };
 
-  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?name=${name}`;
+  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?name`;
 
   const response = await http.get(url, headers);
   const body = await response.readBody();
@@ -26,7 +26,10 @@ export async function getCurrentRecord(token: string, zoneId: string, name: stri
   if (json.success) {
     const record = json.result.find((record: any) => record.name === name);
     if (record) {
-      return record.id;
+      return {
+        id: record.id,
+        content: record.content
+      }
     }
   }
 }
