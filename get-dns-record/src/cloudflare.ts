@@ -21,13 +21,11 @@ export async function getCurrentRecord(token: string, zoneId: string, name: stri
   const body = await response.readBody();
   const json = JSON.parse(body);
 
-  if (json.success) {
-    const record = json.result.find((record: any) => record.name === name);
-    if (record) {
-      return {
-        id: record.id,
-        content: record.content
-      }
+  const record = json.find((record: any) => record.name === name);
+  if (record) {
+    return {
+      id: record.id,
+      content: record.content
     }
   }
 }
