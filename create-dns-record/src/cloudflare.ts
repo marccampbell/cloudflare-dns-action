@@ -56,7 +56,13 @@ export async function updateRecord(token: string, zoneId: string, recordId: stri
 
   const response = await http.put(url, JSON.stringify(body), headers);
   const responseBody = await response.readBody();
+
+  core.info(responseBody)
   const json = JSON.parse(responseBody);
+
+  if (!json.success) {
+    throw new Error(`Failed to update record ${recordId}`);
+  }
 
   core.info(`success = ${json.success}`)
   core.info(`Record updated: ${json.result.id}`)
@@ -92,6 +98,10 @@ export async function createRecord(token: string, zoneId: string, name: string, 
   const response = await http.post(url, JSON.stringify(body), headers);
   const responseBody = await response.readBody();
   const json = JSON.parse(responseBody);
+
+  if (!json.success) {
+    throw new Error(`Failed to create record ${name}`);
+  }
 
   core.info(`success = ${json.success}`)
   core.info(`Record created: ${json.result.id}`)
