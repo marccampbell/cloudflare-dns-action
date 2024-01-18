@@ -1,0 +1,26 @@
+name: 'Get DNS Record'
+description: 'Get DNS Record'
+inputs:
+  type:
+    description: 'DNS record type, e.g. "A", "CNAME", etc.'
+    required: true
+  name:
+    description: 'DNS record name, e.g. "{PR_NUMBER}.example.com"'
+    required: true
+  token:
+    description: "CloudFlare API token"
+    required: true
+  zone:
+    default: "CloudFlare zone"
+    required: true
+outputs:
+  record-id:
+    description: "Record ID"
+  content:
+    description: 'DNS record content, e.g. "{PR_NUMBER}.example.com"'
+  name:
+    description: 'Affected domain name'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+

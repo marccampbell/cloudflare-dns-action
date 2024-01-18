@@ -11,7 +11,7 @@ async function run() {
     const zoneId: string = core.getInput('zoneId');
     const token: string = core.getInput('token');
 
-    const currentRecordId = await getCurrentRecordId(token, name);
+    const currentRecordId = await getCurrentRecordId(token, zoneId, name);
     if (currentRecordId) {
       console.log(`Record already exists with id ${currentRecordId}`);
     } else {

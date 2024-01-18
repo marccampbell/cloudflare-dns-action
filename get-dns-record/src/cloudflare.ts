@@ -1,6 +1,12 @@
+import * as core from '@actions/core';
 import * as httpClient from '@actions/http-client';
 
-export async function getCurrentRecordId(token: string, zoneId: string, name: string): Promise<string|undefined> {
+type Record = {
+  id: string;
+  content: string;
+}
+
+export async function getCurrentRecord(token: string, zoneId: string, name: string): Promise<Record|undefined> {
   const http = new httpClient.HttpClient()
 
   const headers = {
@@ -14,7 +20,9 @@ export async function getCurrentRecordId(token: string, zoneId: string, name: st
   const response = await http.get(url, headers);
   const body = await response.readBody();
   const json = JSON.parse(body);
-  console.log(json);
+
+  core.info(body);
+
   if (json.success) {
     const record = json.result.find((record: any) => record.name === name);
     if (record) {
