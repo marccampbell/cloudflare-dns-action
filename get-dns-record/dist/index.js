@@ -16,7 +16,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createRecord = exports.updateRecord = exports.getCurrentRecord = void 0;
+exports.getCurrentRecord = void 0;
 const core = __nccwpck_require__(2186);
 const httpClient = __nccwpck_require__(6255);
 function getCurrentRecord(token, zoneId, name) {
@@ -31,6 +31,8 @@ function getCurrentRecord(token, zoneId, name) {
         const response = yield http.get(url, headers);
         const body = yield response.readBody();
         const json = JSON.parse(body);
+        core.info(`success = ${json.success}`);
+        core.info(`Found ${json.result.length} records`);
         if (json.success) {
             const record = json.result.find((record) => record.name === name);
             if (record) {
@@ -43,73 +45,6 @@ function getCurrentRecord(token, zoneId, name) {
     });
 }
 exports.getCurrentRecord = getCurrentRecord;
-function updateRecord(token, zoneId, recordId, name, type, content, ttl, proxied) {
-    return __awaiter(this, void 0, void 0, function* () {
-        core.info(`Updating record ${recordId}`);
-        const http = new httpClient.HttpClient();
-        const headers = {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        };
-        const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${recordId}`;
-        const body = {
-            type,
-            name,
-            content,
-            ttl,
-            proxied: proxied === 'true' ? true : false
-        };
-        core.info(JSON.stringify(body));
-        const response = yield http.put(url, JSON.stringify(body), headers);
-        const responseBody = yield response.readBody();
-        core.info(responseBody);
-        const json = JSON.parse(responseBody);
-        if (!json.success) {
-            throw new Error(`Failed to update record ${recordId}`);
-        }
-        core.info(`success = ${json.success}`);
-        core.info(`Record updated: ${json.result.id}`);
-        return {
-            id: json.result.id,
-            content: json.result.content
-        };
-    });
-}
-exports.updateRecord = updateRecord;
-function createRecord(token, zoneId, name, type, content, ttl, proxied) {
-    return __awaiter(this, void 0, void 0, function* () {
-        core.info(`Creating record ${name}`);
-        const http = new httpClient.HttpClient();
-        const headers = {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        };
-        const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`;
-        const body = {
-            type,
-            name,
-            content,
-            ttl,
-            proxied: proxied === 'true' ? true : false
-        };
-        core.info(JSON.stringify(body));
-        const response = yield http.post(url, JSON.stringify(body), headers);
-        const responseBody = yield response.readBody();
-        const json = JSON.parse(responseBody);
-        if (!json.success) {
-            throw new Error(`Failed to create record ${name}`);
-        }
-        core.info(`success = ${json.success}`);
-        core.info(`Record created: ${json.result.id}`);
-        return {
-            id: json.result.id,
-            content: json.result.content
-        };
-    });
-}
-exports.createRecord = createRecord;
 //# sourceMappingURL=cloudflare.js.map
 
 /***/ }),
@@ -136,20 +71,14 @@ function run() {
         try {
             const type = core.getInput('type');
             const name = core.getInput('name');
-            const content = core.getInput('content');
-            const ttl = core.getInput('ttl');
-            const proxied = core.getInput('proxied');
             const zoneId = core.getInput('zoneId');
             const token = core.getInput('token');
             const currentRecord = yield (0, cloudflare_1.getCurrentRecord)(token, zoneId, name);
-            if (currentRecord) {
-                const updatedRecord = yield (0, cloudflare_1.updateRecord)(token, zoneId, currentRecord.id, name, type, content, ttl, proxied);
-                core.setOutput('record-id', updatedRecord.id);
+            if (!currentRecord) {
+                throw new Error(`Record does not exist`);
             }
-            else {
-                const newRecord = yield (0, cloudflare_1.createRecord)(token, zoneId, name, type, content, ttl, proxied);
-                core.setOutput('record-id', newRecord.id);
-            }
+            core.setOutput('record-id', currentRecord.id);
+            core.setOutput('content', currentRecord.content);
         }
         catch (error) {
             core.setFailed(error.message);
