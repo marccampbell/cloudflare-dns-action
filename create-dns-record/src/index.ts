@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { getCurrentRecordId } from './cloudflare';
+import { getCurrentRecord, updateRecord, createRecord } from './cloudflare';
 
 async function run() {
   try {
@@ -11,11 +11,13 @@ async function run() {
     const zoneId: string = core.getInput('zoneId');
     const token: string = core.getInput('token');
 
-    const currentRecordId = await getCurrentRecordId(token, zoneId, name);
-    if (currentRecordId) {
-      console.log(`Record already exists with id ${currentRecordId}`);
+    const currentRecord = await getCurrentRecord(token, zoneId, name);
+    if (currentRecord) {
+      const updatedRecord = await updateRecord(token, zoneId, currentRecord.id, name, type, content, ttl, proxied);
+      core.setOutput('record-id', updatedRecord.id);
     } else {
-      console.log(`Record does not exist, creating...`);
+      const newRecord = await createRecord(token, zoneId, name, type, content, ttl, proxied);
+      core.setOutput('record-id', newRecord.id);
     }
 
   } catch (error) {

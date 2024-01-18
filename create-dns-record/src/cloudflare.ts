@@ -1,6 +1,12 @@
+import * as core from '@actions/core';
 import * as httpClient from '@actions/http-client';
 
-export async function getCurrentRecordId(token: string, zoneId: string, name: string): Promise<string|undefined> {
+type Record = {
+  id: string;
+  content: string;
+}
+
+export async function getCurrentRecord(token: string, zoneId: string, name: string): Promise<Record|undefined> {
   const http = new httpClient.HttpClient()
 
   const headers = {
@@ -9,16 +15,86 @@ export async function getCurrentRecordId(token: string, zoneId: string, name: st
     "Accept": "application/json"
   };
 
-  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?name=${name}`;
+  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?per_page=50000`;
 
   const response = await http.get(url, headers);
   const body = await response.readBody();
   const json = JSON.parse(body);
-  console.log(json);
+
+  core.info(`success = ${json.success}`)
+  core.info(`Found ${json.result.length} records`)
+
   if (json.success) {
     const record = json.result.find((record: any) => record.name === name);
     if (record) {
-      return record.id;
+      return {
+        id: record.id,
+        content: record.content
+      }
     }
+  }
+}
+
+export async function updateRecord(token: string, zoneId: string, recordId: string, name: string, type: string, content: string, ttl: string, proxied: string): Promise<Record> {
+  const http = new httpClient.HttpClient()
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  };
+
+  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${recordId}`;
+
+  const body = {
+    type,
+    name,
+    content,
+    ttl,
+    proxied
+  }
+
+  const response = await http.put(url, JSON.stringify(body), headers);
+  const responseBody = await response.readBody();
+  const json = JSON.parse(responseBody);
+
+  core.info(`success = ${json.success}`)
+  core.info(`Record updated: ${json.result.id}`)
+
+  return {
+    id: json.result.id,
+    content: json.result.content
+  }
+}
+
+export async function createRecord(token: string, zoneId: string, name: string, type: string, content: string, ttl: string, proxied: string): Promise<Record> {
+  const http = new httpClient.HttpClient()
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  };
+
+  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`;
+
+  const body = {
+    type,
+    name,
+    content,
+    ttl,
+    proxied
+  }
+
+  const response = await http.post(url, JSON.stringify(body), headers);
+  const responseBody = await response.readBody();
+  const json = JSON.parse(responseBody);
+
+  core.info(`success = ${json.success}`)
+  core.info(`Record created: ${json.result.id}`)
+
+  return {
+    id: json.result.id,
+    content: json.result.content
   }
 }
