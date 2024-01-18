@@ -21,9 +21,6 @@ export async function getCurrentRecord(token: string, zoneId: string, name: stri
   const body = await response.readBody();
   const json = JSON.parse(body);
 
-  core.info(`success = ${json.success}`)
-  core.info(`Found ${json.result.length} records`)
-
   if (json.success) {
     const record = json.result.find((record: any) => record.name === name);
     if (record) {
@@ -36,6 +33,7 @@ export async function getCurrentRecord(token: string, zoneId: string, name: stri
 }
 
 export async function updateRecord(token: string, zoneId: string, recordId: string, name: string, type: string, content: string, ttl: string, proxied: string): Promise<Record> {
+  core.info(`Updating record ${recordId}`)
   const http = new httpClient.HttpClient()
 
   const headers = {
@@ -54,6 +52,8 @@ export async function updateRecord(token: string, zoneId: string, recordId: stri
     proxied
   }
 
+  core.info(JSON.stringify(body));
+
   const response = await http.put(url, JSON.stringify(body), headers);
   const responseBody = await response.readBody();
   const json = JSON.parse(responseBody);
@@ -68,6 +68,7 @@ export async function updateRecord(token: string, zoneId: string, recordId: stri
 }
 
 export async function createRecord(token: string, zoneId: string, name: string, type: string, content: string, ttl: string, proxied: string): Promise<Record> {
+  core.info(`Creating record ${name}`)
   const http = new httpClient.HttpClient()
 
   const headers = {
@@ -85,6 +86,8 @@ export async function createRecord(token: string, zoneId: string, name: string, 
     ttl,
     proxied
   }
+
+  core.info(JSON.stringify(body));
 
   const response = await http.post(url, JSON.stringify(body), headers);
   const responseBody = await response.readBody();
