@@ -10,7 +10,7 @@ inputs:
   token:
     description: "CloudFlare API token"
     required: true
-  zone:
+  zoneId:
     default: "CloudFlare zone"
     required: true
 outputs:
